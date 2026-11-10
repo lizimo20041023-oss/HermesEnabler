@@ -1,0 +1,36 @@
+name: Build unsigned HermesEnabler IPA
+
+on:
+  workflow_dispatch:
+    inputs:
+      bundle_id:
+        description: Bundle identifier prefix for the iPhone and Watch apps
+        required: true
+        default: com.example.HermesEnabler
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-26
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build unsigned IPA
+        env:
+          BUNDLE_ID: ${{ inputs.bundle_id }}
+        run: scripts/create_ipa.sh --bundle-id "$BUNDLE_ID"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HermesEnabler-unsigned-ipa
+          path: build/unsigned/*.ipa
+          if-no-files-found: error
+          retention-days: 3
